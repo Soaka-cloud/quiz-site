@@ -74,19 +74,39 @@ export function requestUrl(endpoint, client) {
   return url.toString();
 }
 
-export async function postAnswers(endpoint, payload, client = 'web') {
-  const response = await fetch(requestUrl(endpoint, client), {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payload),
-    redirect: 'follow',
-  });
+export async function postAnswers(endpoint, payload, client = 'web', timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response;
+  try {
+    response = await fetch(requestUrl(endpoint, client), {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload),
+      redirect: 'follow',
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error(`Приёмник не ответил за ${Math.round(timeoutMs / 1000)} с. Проверьте соединение и отправьте ещё раз.`);
+    }
+    throw new Error(`Не удалось отправить ответы: ${error.message}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!response.ok) {
     throw new Error(`Сервер ответил ${response.status}`);
   }
 
-  const text = await response.text();
+  let text;
+  try {
+    text = await response.text();
+  } catch {
+    throw new Error('Сервер принял запрос, но ответ не читается (редирект без тела). Проверьте таблицу.');
+  }
+
   let data;
   try {
     data = JSON.parse(text);
