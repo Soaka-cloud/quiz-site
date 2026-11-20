@@ -40,6 +40,10 @@ body {
   color: #b00020;
 }
 
+.submit-error[hidden] {
+  color: inherit;
+}
+
 .thank-you-screen {
   padding: 16px 0;
 }
