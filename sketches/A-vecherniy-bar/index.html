@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Куда пойдём — вариант A: вечерний бар</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0e0d0f;
+    --bg-soft:#16151a;
+    --card:#1c1a20;
+    --line:rgba(255,255,255,.10);
+    --amber:#d8a266;
+    --amber-soft:rgba(216,162,102,.14);
+    --text:#f2ede6;
+    --muted:#958e88;
+  }
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    font-weight:300;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    padding:28px 20px 60px;
+  }
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(680px 420px at 82% -8%, rgba(216,162,102,.20), transparent 62%),
+      radial-gradient(520px 380px at 0% 100%, rgba(120,92,160,.16), transparent 65%);
+    pointer-events:none;
+    z-index:0;
+  }
+  .wrap{position:relative;z-index:1;max-width:560px;margin:0 auto}
+
+  .eyebrow{
+    font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--amber);
+    display:flex;align-items:center;gap:10px;margin-bottom:26px;
+  }
+  .eyebrow::after{content:'';height:1px;flex:1;background:linear-gradient(90deg,var(--amber),transparent)}
+
+  h1{
+    font-family:'Cormorant Garamond',Georgia,serif;
+    font-weight:400;font-size:clamp(38px,10vw,58px);line-height:1.02;letter-spacing:-.01em;
+    margin-bottom:18px;
+  }
+  h1 em{font-style:italic;color:var(--amber)}
+  .lead{font-size:16px;color:var(--muted);max-width:44ch;margin-bottom:34px}
+  .lead b{color:var(--text);font-weight:400}
+
+  .step{margin-bottom:30px}
+  .step-label{
+    display:flex;align-items:baseline;gap:12px;margin-bottom:14px;
+  }
+  .step-num{
+    font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--amber);opacity:.85;
+    min-width:22px;
+  }
+  .step-title{font-size:15px;letter-spacing:.01em;font-weight:400}
+  .step-hint{font-size:12px;color:var(--muted);margin-left:auto}
+
+  .cards{display:grid;gap:10px}
+  .place{
+    display:flex;align-items:center;gap:14px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 16px;
+    cursor:pointer;
+    transition:border-color .18s ease, background .18s ease, transform .18s ease;
+    text-align:left;
+    color:inherit;font:inherit;
+    width:100%;
+  }
+  .place:hover{border-color:rgba(216,162,102,.45);transform:translateY(-1px)}
+  .place .dot{
+    width:18px;height:18px;border-radius:50%;
+    border:1px solid rgba(255,255,255,.28);
+    flex:none;position:relative;
+  }
+  .place[aria-pressed="true"]{border-color:var(--amber);background:var(--amber-soft)}
+  .place[aria-pressed="true"] .dot{border-color:var(--amber)}
+  .place[aria-pressed="true"] .dot::after{
+    content:'';position:absolute;inset:3px;border-radius:50%;background:var(--amber);
+  }
+  .place-name{flex:1}
+  .place-name strong{display:block;font-weight:400;font-size:15px}
+  .place-name span{font-size:12.5px;color:var(--muted)}
+  .place-tag{
+    font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);
+    border:1px solid rgba(216,162,102,.35);border-radius:999px;padding:3px 9px;flex:none;
+  }
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    border:1px solid var(--line);background:transparent;color:var(--muted);
+    border-radius:999px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;
+    transition:all .16s ease;
+  }
+  .chip:hover{color:var(--text);border-color:rgba(255,255,255,.25)}
+  .chip[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:#17130e;font-weight:400}
+
+  .send{
+    width:100%;margin-top:26px;padding:16px 20px;border-radius:14px;border:0;
+    background:linear-gradient(180deg,#e0ab6d,#c98d4d);color:#191308;
+    font:inherit;font-size:15px;font-weight:500;letter-spacing:.02em;cursor:pointer;
+    transition:filter .18s ease, transform .18s ease;
+  }
+  .send:hover{filter:brightness(1.06)}
+  .send:active{transform:scale(.995)}
+  .send:disabled{opacity:.4;cursor:default;filter:none}
+  .foot{margin-top:16px;font-size:12px;color:var(--muted);text-align:center}
+
+  .thanks{display:none;text-align:center;padding:44px 8px}
+  .thanks.show{display:block}
+  .thanks h2{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:400;margin-bottom:12px}
+  .thanks p{color:var(--muted);font-size:14.5px;max-width:38ch;margin:0 auto 24px}
+  .thanks .again{
+    background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;
+    padding:9px 18px;font:inherit;font-size:13px;cursor:pointer;
+  }
+  .thanks .again:hover{color:var(--text);border-color:rgba(255,255,255,.3)}
+
+  .progress{
+    display:flex;gap:6px;margin-bottom:34px;
+  }
+  .progress i{height:2px;flex:1;background:rgba(255,255,255,.10);border-radius:2px;transition:background .25s ease}
+  .progress i.on{background:var(--amber)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Приглашение</div>
+  <h1>Давай выберем<br>место <em>встречи</em></h1>
+  <p class="lead">Три коротких вопроса — и я знаю, куда бронировать столик. Займёт минуту, обещаю не спрашивать «как дела» для приличия.</p>
+
+  <div class="progress"><i class="on"></i><i></i><i></i></div>
+
+  <div id="form">
+    <section class="step">
+      <div class="step-label">
+        <span class="step-num">01</span>
+        <span class="step-title">Куда тебе ближе?</span>
+        <span class="step-hint">выбери одно</span>
+      </div>
+      <div class="cards">
+        <button class="place" aria-pressed="false" data-q="place">
+          <span class="dot"></span>
+          <span class="place-name"><strong>Винный бар «Пыль»</strong><span>тихо, свечи, разговоры без крика</span></span>
+          <span class="place-tag">вечер</span>
+        </button>
+        <button class="place" aria-pressed="false" data-q="place">
+          <span class="dot"></span>
+          <span class="place-name"><strong>Кофейня на углу</strong><span>дневной свет, можно уйти в любое время</span></span>
+          <span class="place-tag">день</span>
+        </button>
+        <button class="place" aria-pressed="false" data-q="place">
+          <span class="dot"></span>
+          <span class="place-name"><strong>Прогулка по набережной</strong><span>без брони, без формальностей</span></span>
+          <span class="place-tag">воздух</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="step-label">
+        <span class="step-num">02</span>
+        <span class="step-title">Когда удобнее?</span>
+        <span class="step-hint">выбери одно</span>
+      </div>
+      <div class="chips" data-group="time">
+        <button class="chip" aria-pressed="false">Будний вечер</button>
+        <button class="chip" aria-pressed="false">Выходные днём</button>
+        <button class="chip" aria-pressed="false">Выходные вечером</button>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="step-label">
+        <span class="step-num">03</span>
+        <span class="step-title">Что тебе приятнее?</span>
+        <span class="step-hint">можно несколько</span>
+      </div>
+      <div class="chips" data-group="mood" data-multi="true">
+        <button class="chip" aria-pressed="false">Спокойно и тихо</button>
+        <button class="chip" aria-pressed="false">Живое место</button>
+        <button class="chip" aria-pressed="false">Много движения</button>
+        <button class="chip" aria-pressed="false">Поесть нормально</button>
+      </div>
+    </section>
+
+    <button class="send" id="send" disabled>Отправить выбор</button>
+    <p class="foot">Только ответы. Ничего лишнего.</p>
+  </div>
+
+  <div class="thanks" id="thanks">
+    <h2>Договорились.</h2>
+    <p>Ответ у меня. Вечером напишу с адресом и временем — и с одной фразой, от которой ты, надеюсь, улыбнёшься.</p>
+    <button class="again" id="again">Изменить выбор</button>
+  </div>
+</div>
+
+<script>
+  const state = { place: null, time: null, mood: new Set() };
+  const send = document.getElementById('send');
+  const form = document.getElementById('form');
+  const thanks = document.getElementById('thanks');
+  const bars = [...document.querySelectorAll('.progress i')];
+
+  function refresh() {
+    const done = (state.place ? 1 : 0) + (state.time ? 1 : 0) + (state.mood.size ? 1 : 0);
+    bars.forEach((b, i) => b.classList.toggle('on', i < done));
+    send.disabled = done < 3;
+    send.textContent = done < 3 ? `Отправить выбор (${done}/3)` : 'Отправить выбор';
+  }
+
+  document.querySelectorAll('.place').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.place').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+      btn.setAttribute('aria-pressed', 'true');
+      state.place = btn.querySelector('strong').textContent;
+      refresh();
+    });
+  });
+
+  document.querySelectorAll('.chips').forEach((group) => {
+    const multi = group.dataset.multi === 'true';
+    group.querySelectorAll('.chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const name = group.dataset.group;
+        if (multi) {
+          const on = chip.getAttribute('aria-pressed') !== 'true';
+          chip.setAttribute('aria-pressed', String(on));
+          if (on) state.mood.add(chip.textContent); else state.mood.delete(chip.textContent);
+        } else {
+          group.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', 'false'));
+          chip.setAttribute('aria-pressed', 'true');
+          state.time = chip.textContent;
+        }
+        refresh();
+      });
+    });
+  });
+
+  send.addEventListener('click', () => {
+    form.style.display = 'none';
+    thanks.classList.add('show');
+  });
+
+  document.getElementById('again').addEventListener('click', () => {
+    thanks.classList.remove('show');
+    form.style.display = 'block';
+  });
+
+  refresh();
+</script>
+</body>
+</html>

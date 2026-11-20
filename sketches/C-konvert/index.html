@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Куда пойдём — вариант C: меню в конверте</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Alegreya+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0a0d14;
+    --panel:#101724;
+    --panel2:#141c2b;
+    --line:rgba(198,166,100,.22);
+    --gold:#c6a664;
+    --gold-soft:rgba(198,166,100,.12);
+    --text:#f4f1ea;
+    --dim:#8d97a8;
+  }
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Alegreya Sans',system-ui,sans-serif;
+    font-weight:300;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    padding:24px 16px 64px;
+  }
+  body::after{
+    content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(720px 480px at 50% -10%, rgba(198,166,100,.14), transparent 60%),
+      radial-gradient(600px 400px at 100% 110%, rgba(40,80,140,.18), transparent 62%);
+  }
+  .wrap{position:relative;z-index:1;max-width:600px;margin:0 auto}
+
+  .card{
+    background:linear-gradient(180deg,var(--panel2),var(--panel));
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding:26px 22px 22px;
+    box-shadow:0 24px 60px -30px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+
+  .head{text-align:center;padding:6px 0 22px;border-bottom:1px solid var(--line);margin-bottom:22px}
+  .seal{
+    width:52px;height:52px;margin:0 auto 16px;border-radius:50%;
+    border:1px solid var(--line);
+    display:grid;place-items:center;
+    font-family:'Playfair Display',serif;font-size:20px;color:var(--gold);
+    background:var(--gold-soft);
+    letter-spacing:.02em;
+  }
+  h1{
+    font-family:'Playfair Display',serif;font-weight:500;
+    font-size:clamp(27px,7.4vw,38px);line-height:1.15;letter-spacing:.01em;
+  }
+  h1 i{color:var(--gold);font-style:italic}
+  .sub{margin-top:12px;font-size:14px;color:var(--dim);max-width:42ch;margin-left:auto;margin-right:auto}
+
+  .course{padding:16px 0;border-bottom:1px dashed rgba(198,166,100,.16)}
+  .course:last-of-type{border-bottom:0}
+  .course-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+  .course-name{
+    font-family:'Playfair Display',serif;font-size:15px;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;
+  }
+  .course-hint{margin-left:auto;font-size:11px;color:var(--dim);letter-spacing:.04em}
+
+  .menu{display:grid;gap:9px}
+  .dish{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;
+    background:transparent;border:1px solid rgba(255,255,255,.07);border-radius:12px;
+    padding:13px 14px;color:inherit;font:inherit;
+    transition:border-color .16s ease, background .16s ease, padding .16s ease;
+  }
+  .dish:hover{border-color:var(--line);background:rgba(198,166,100,.05)}
+  .dish[aria-pressed="true"]{border-color:var(--gold);background:var(--gold-soft)}
+  .dish .name{flex:1}
+  .dish .name b{display:block;font-weight:400;font-size:14.5px;font-family:'Alegreya Sans',sans-serif}
+  .dish .name span{font-size:12px;color:var(--dim)}
+  .dish .price{
+    font-family:'Playfair Display',serif;font-size:13px;color:var(--dim);flex:none;
+    border-left:1px dotted rgba(198,166,100,.4);padding-left:12px;min-width:64px;text-align:right;
+  }
+  .dish[aria-pressed="true"] .price{color:var(--gold)}
+  .dish .mark{
+    width:16px;height:16px;border-radius:50%;border:1px solid rgba(255,255,255,.2);flex:none;
+    display:grid;place-items:center;font-size:0;color:#12140f;position:relative;
+  }
+  .dish[aria-pressed="true"] .mark{background:var(--gold);border-color:var(--gold)}
+  .dish[aria-pressed="true"] .mark::after{
+    content:'';width:6px;height:6px;border-radius:50%;background:#10131a;
+  }
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    border:1px solid rgba(255,255,255,.10);background:transparent;color:var(--dim);
+    border-radius:8px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer;transition:all .15s ease;
+  }
+  .chip:hover{color:var(--text);border-color:var(--line)}
+  .chip[aria-pressed="true"]{border-color:var(--gold);color:var(--gold);background:var(--gold-soft)}
+
+  .sign{
+    margin-top:22px;width:100%;padding:15px;border-radius:12px;border:1px solid var(--gold);
+    background:transparent;color:var(--gold);font:inherit;font-size:15px;letter-spacing:.06em;
+    text-transform:uppercase;cursor:pointer;transition:background .18s ease,color .18s ease;
+  }
+  .sign:hover{background:var(--gold);color:#10131a}
+  .sign:disabled{border-color:rgba(255,255,255,.09);color:var(--dim);cursor:default;background:transparent}
+  .note{margin-top:12px;text-align:center;font-size:11.5px;color:var(--dim);letter-spacing:.03em}
+
+  .thanks{display:none;text-align:center;padding:40px 6px 20px}
+  .thanks.show{display:block}
+  .thanks h2{font-family:'Playfair Display',serif;font-size:30px;font-weight:500;margin-bottom:10px}
+  .thanks h2 i{color:var(--gold)}
+  .thanks p{color:var(--dim);font-size:14px;max-width:38ch;margin:0 auto 22px}
+  .thanks .again{
+    background:none;border:1px solid var(--line);color:var(--gold);border-radius:10px;
+    padding:9px 18px;font:inherit;font-size:13px;cursor:pointer;letter-spacing:.03em;
+  }
+  .thanks .again:hover{background:var(--gold-soft)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card" id="card">
+    <div class="head">
+      <div class="seal">М</div>
+      <h1>Приглашение<br><i>на одну встречу</i></h1>
+      <p class="sub">Составь меню вечера: место, время, настроение. Бронировать буду я — тебе останется только прийти.</p>
+    </div>
+
+    <div id="form">
+      <section class="course">
+        <div class="course-head">
+          <span class="course-name">Место</span>
+          <span class="course-hint">одно из трёх</span>
+        </div>
+        <div class="menu" data-group="place">
+          <button class="dish" aria-pressed="false" data-value="vinnyj-bar">
+            <span class="mark"></span>
+            <span class="name"><b>Винный бар</b><span>свечи, тихий зал, разговоры без спешки</span></span>
+            <span class="price">18:00—23:00</span>
+          </button>
+          <button class="dish" aria-pressed="false" data-value="kofejnya">
+            <span class="mark"></span>
+            <span class="name"><b>Кофейня у парка</b><span>светло, можно задержаться хоть на три часа</span></span>
+            <span class="price">10:00—21:00</span>
+          </button>
+          <button class="dish" aria-pressed="false" data-value="progulka">
+            <span class="mark"></span>
+            <span class="name"><b>Набережная</b><span>без брони, шаг в шаг, ветер в лицо</span></span>
+            <span class="price">закат</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="course">
+        <div class="course-head">
+          <span class="course-name">Время</span>
+          <span class="course-hint">выбери одно</span>
+        </div>
+        <div class="chips" data-group="when">
+          <button class="chip" aria-pressed="false" data-value="weekday-evening">Будний вечер</button>
+          <button class="chip" aria-pressed="false" data-value="weekend-day">Выходные днём</button>
+          <button class="chip" aria-pressed="false" data-value="weekend-evening">Выходные вечером</button>
+        </div>
+      </section>
+
+      <section class="course">
+        <div class="course-head">
+          <span class="course-name">Настроение</span>
+          <span class="course-hint">можно несколько</span>
+        </div>
+        <div class="chips" data-group="mood" data-multi="true">
+          <button class="chip" aria-pressed="false" data-value="quiet">Тихо</button>
+          <button class="chip" aria-pressed="false" data-value="live">Живо</button>
+          <button class="chip" aria-pressed="false" data-value="food">Поесть хорошо</button>
+          <button class="chip" aria-pressed="false" data-value="walk">Погулять</button>
+        </div>
+      </section>
+
+      <button class="sign" id="sign" disabled>Подписать приглашение</button>
+      <p class="note">Выбор уходит мне — пришлю адрес и время</p>
+    </div>
+
+    <div class="thanks" id="thanks">
+      <h2>Приглашение <i>принято</i></h2>
+      <p>Ответ у меня. Напишу адрес, время и одну деталь, о которой приятно думать заранее.</p>
+      <button class="again" id="again">Изменить выбор</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const state = { place: null, when: null, mood: new Set() };
+  const sign = document.getElementById('sign');
+  const form = document.getElementById('form');
+  const thanks = document.getElementById('thanks');
+
+  function refresh() {
+    const done = (state.place ? 1 : 0) + (state.when ? 1 : 0) + (state.mood.size ? 1 : 0);
+    sign.disabled = done < 3;
+    sign.textContent = done < 3 ? `Осталось шагов: ${3 - done}` : 'Подписать приглашение';
+  }
+
+  document.querySelectorAll('[data-group]').forEach((group) => {
+    const name = group.dataset.group;
+    const multi = group.dataset.multi === 'true';
+    const items = [...group.querySelectorAll('[aria-pressed]')];
+    items.forEach((item) => {
+      item.addEventListener('click', () => {
+        if (multi) {
+          const on = item.getAttribute('aria-pressed') !== 'true';
+          item.setAttribute('aria-pressed', String(on));
+          if (on) state.mood.add(item.dataset.value); else state.mood.delete(item.dataset.value);
+        } else {
+          items.forEach((other) => other.setAttribute('aria-pressed', 'false'));
+          item.setAttribute('aria-pressed', 'true');
+          if (name === 'place') state.place = item.dataset.value;
+          if (name === 'when') state.when = item.dataset.value;
+        }
+        refresh();
+      });
+    });
+  });
+
+  sign.addEventListener('click', () => {
+    form.style.display = 'none';
+    thanks.classList.add('show');
+  });
+  document.getElementById('again').addEventListener('click', () => {
+    thanks.classList.remove('show');
+    form.style.display = 'block';
+  });
+  refresh();
+</script>
+</body>
+</html>
