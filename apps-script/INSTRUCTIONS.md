@@ -44,9 +44,8 @@ https://script.google.com/macros/s/AAAAAAAAAAAA/exec
 
 ## 5. Прописать URL во фронте
 
-1. В корне проекта скопируйте `config.example.js` → `config.js`.
-2. Впишите скопированный URL в поле `endpoint`.
-3. `config.js` в `.gitignore` — в репозиторий не попадёт.
+1. Откройте `config.js` в корне проекта.
+2. Впишите URL из шага 4 в поле `endpoint` (этот файл коммитится — URL не секрет, см. README).
 
 ```js
 window.SURVEY_CONFIG = {
