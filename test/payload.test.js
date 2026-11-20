@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildPayload, selectAnswer, submitUrl } from '../survey.js';
+import { buildPayload, requestUrl, selectAnswer, submitUrl } from '../survey.js';
 
 const questions = [
   { id: 'q1', text: 'Формат работы?', options: ['Удалённо', 'Гибрид', 'Офис'] },
@@ -37,4 +37,15 @@ test('U5: submitUrl берёт адрес из конфига, иначе бро
   assert.equal(submitUrl({ endpoint: 'https://example.test/exec' }), 'https://example.test/exec');
   assert.throws(() => submitUrl({}), /endpoint/);
   assert.throws(() => submitUrl(undefined), /endpoint/);
+});
+
+test('U6: requestUrl добавляет ASCII-маркер клиента, не ломая существующие параметры', () => {
+  assert.equal(
+    requestUrl('https://script.google.com/macros/s/ID/exec', 'web'),
+    'https://script.google.com/macros/s/ID/exec?client=web',
+  );
+  assert.equal(
+    requestUrl('https://example.test/exec?foo=1', 'smoke'),
+    'https://example.test/exec?foo=1&client=smoke',
+  );
 });

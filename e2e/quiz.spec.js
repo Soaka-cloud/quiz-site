@@ -2,11 +2,15 @@ import { test, expect } from '@playwright/test';
 
 const QUESTION_COUNT = 3;
 const FAKE_ENDPOINT = 'https://script.google.com/macros/s/FAKE_DEPLOYMENT_ID/exec';
+const CONFIG_STUB = `window.SURVEY_CONFIG = { endpoint: '${FAKE_ENDPOINT}' };`;
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript((endpoint) => {
-    window.SURVEY_CONFIG = { endpoint };
-  }, FAKE_ENDPOINT);
+  await page.route('**/config.js', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/javascript', body: CONFIG_STUB }),
+  );
+  await page.route(`${FAKE_ENDPOINT}?client=web`, (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }),
+  );
   await page.goto('/index.html');
 });
 
@@ -47,10 +51,6 @@ test('E2: клик по варианту выбирает его и двигае
 });
 
 test('E3: после ответов на все вопросы показывается экран благодарности', async ({ page }) => {
-  await page.route('**/macros/s/**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }),
-  );
-
   const questions = page.locator('.survey-question');
   for (let i = 0; i < QUESTION_COUNT; i += 1) {
     await questions.nth(i).locator('.answer-option').first().click();

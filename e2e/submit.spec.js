@@ -2,11 +2,16 @@ import { test, expect } from '@playwright/test';
 
 const QUESTION_COUNT = 3;
 const FAKE_ENDPOINT = 'https://script.google.com/macros/s/FAKE_DEPLOYMENT_ID/exec';
+const WEB_REQUEST = `${FAKE_ENDPOINT}?client=web`;
+const CONFIG_STUB = `window.SURVEY_CONFIG = { endpoint: '${FAKE_ENDPOINT}' };`;
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript((endpoint) => {
-    window.SURVEY_CONFIG = { endpoint };
-  }, FAKE_ENDPOINT);
+  await page.route(WEB_REQUEST, (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }),
+  );
+  await page.route('**/config.js', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/javascript', body: CONFIG_STUB }),
+  );
   await page.goto('/index.html');
 });
 
@@ -17,14 +22,6 @@ async function answerEverything(page) {
 }
 
 test('E4: при отправке уходит JSON с timestamp и ответами по вопросам', async ({ page }) => {
-  await page.route('**/macros/s/**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ ok: true }),
-    });
-  });
-
   await answerEverything(page);
 
   const [request] = await Promise.all([
@@ -32,7 +29,7 @@ test('E4: при отправке уходит JSON с timestamp и ответа
     page.locator('.submit-button').click(),
   ]);
 
-  expect(request.url()).toBe(FAKE_ENDPOINT);
+  expect(request.url()).toBe(WEB_REQUEST);
 
   const payload = JSON.parse(request.postData());
   expect(typeof payload.timestamp).toBe('string');

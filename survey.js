@@ -38,8 +38,14 @@ export function submitUrl(config) {
   return endpoint;
 }
 
-export async function postAnswers(endpoint, payload) {
-  const response = await fetch(endpoint, {
+export function requestUrl(endpoint, client) {
+  const url = new URL(endpoint);
+  url.searchParams.set('client', client);
+  return url.toString();
+}
+
+export async function postAnswers(endpoint, payload, client = 'web') {
+  const response = await fetch(requestUrl(endpoint, client), {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify(payload),
