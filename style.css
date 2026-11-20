@@ -40,6 +40,13 @@ body {
   color: #b00020;
 }
 
+.answer-input {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  font: inherit;
+}
+
 .submit-error[hidden] {
   color: inherit;
 }

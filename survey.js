@@ -1,8 +1,8 @@
 export function renderQuestion(question) {
-  const options = question.options
+  const options = (question.options || [])
     .map(
       (option, index) =>
-        `<button type="button" class="answer-option" data-question-id="${question.id}" data-option-index="${index}" data-selected="false">${option}</button>`,
+        `<button type="button" class="answer-option" data-question-id="${question.id}" data-option-index="${index}" data-selected="false">${option.label}</button>`,
     )
     .join('');
 
@@ -12,8 +12,37 @@ export function renderQuestion(question) {
 </fieldset>`;
 }
 
+export function renderTextQuestion(question) {
+  const required = question.required !== false;
+
+  return `<fieldset class="survey-question" data-question-id="${question.id}" data-answered="false">
+  <legend class="question-text">${question.text}</legend>
+  <textarea class="answer-input" rows="3" aria-label="${question.text}" placeholder="${question.placeholder || ''}" data-required="${required}"></textarea>
+</fieldset>`;
+}
+
 export function selectAnswer(answers, questionId, optionIndex) {
   return { ...answers, [questionId]: optionIndex };
+}
+
+function isEmptyValue(value) {
+  if (Array.isArray(value)) {
+    return value.length === 0;
+  }
+  if (typeof value === 'string') {
+    return value.trim() === '';
+  }
+  return value === undefined || value === null;
+}
+
+function answerText(question, value) {
+  if (Array.isArray(value)) {
+    return value.map((index) => question.options[index].value).join(', ');
+  }
+  if (typeof value === 'number') {
+    return question.options[value].value;
+  }
+  return value;
 }
 
 export function buildPayload(answers, questions, now = new Date()) {
@@ -21,11 +50,12 @@ export function buildPayload(answers, questions, now = new Date()) {
     timestamp: now.toISOString(),
     survey: 'default',
     answers: questions
-      .filter((question) => answers[question.id] !== undefined)
-      .map((question) => ({
+      .map((question) => ({ question, value: answers[question.id] }))
+      .filter(({ value }) => !isEmptyValue(value))
+      .map(({ question, value }) => ({
         id: question.id,
         question: question.text,
-        answer: question.options[answers[question.id]],
+        answer: answerText(question, value),
       })),
   };
 }

@@ -4,22 +4,64 @@ import assert from 'node:assert/strict';
 import { buildPayload, requestUrl, selectAnswer, submitUrl } from '../survey.js';
 
 const questions = [
-  { id: 'q1', text: 'Формат работы?', options: ['Удалённо', 'Гибрид', 'Офис'] },
-  { id: 'q2', text: 'Темп обучения?', options: ['Спокойный', 'Быстрый'] },
+  {
+    id: 'q1',
+    type: 'radio',
+    text: 'Формат работы?',
+    options: [
+      { label: 'Удалённо', value: 'Удалённо' },
+      { label: 'Гибрид', value: 'Гибрид' },
+      { label: 'Офис', value: 'Офис' },
+    ],
+  },
+  {
+    id: 'q2',
+    type: 'checkbox',
+    text: 'Что важно?',
+    options: [
+      { label: 'Наставник', value: 'Наставник' },
+      { label: 'Обратная связь', value: 'Обратная связь' },
+    ],
+  },
+  {
+    id: 'q3',
+    type: 'text',
+    text: 'Откуда узнал(а)?',
+    options: [],
+    required: true,
+  },
 ];
 
 test('U1: buildPayload отдаёт ответы текстом, в порядке вопросов', () => {
-  const payload = buildPayload({ q2: 1, q1: 0 }, questions, new Date('2026-11-20T10:00:00.000Z'));
+  const payload = buildPayload(
+    { q3: 'Группа', q2: [1], q1: 0 },
+    questions,
+    new Date('2026-11-20T10:00:00.000Z'),
+  );
 
   assert.deepEqual(payload.answers, [
     { id: 'q1', question: 'Формат работы?', answer: 'Удалённо' },
-    { id: 'q2', question: 'Темп обучения?', answer: 'Быстрый' },
+    { id: 'q2', question: 'Что важно?', answer: 'Обратная связь' },
+    { id: 'q3', question: 'Откуда узнал(а)?', answer: 'Группа' },
   ]);
+});
+
+test('U9: мультивыбор склеивается текстом, текстовый ответ сохраняется как введён', () => {
+  const payload = buildPayload({ q1: 2, q2: [0, 1], q3: '  знакомый  ' }, questions, new Date());
+
+  assert.equal(payload.answers[1].answer, 'Наставник, Обратная связь');
+  assert.equal(payload.answers[2].answer, '  знакомый  ');
+});
+
+test('U10: пустые ответы не попадают в payload', () => {
+  const payload = buildPayload({ q1: undefined, q2: [], q3: '   ' }, questions, new Date());
+
+  assert.deepEqual(payload.answers, []);
 });
 
 test('U2: timestamp — ISO-строка из переданного времени', () => {
   const now = new Date('2026-11-20T10:00:00.000Z');
-  const payload = buildPayload({ q1: 0, q2: 0 }, questions, now);
+  const payload = buildPayload({ q1: 0, q2: [0], q3: 'лента' }, questions, now);
 
   assert.equal(payload.timestamp, '2026-11-20T10:00:00.000Z');
 });
@@ -28,7 +70,7 @@ test('U3: повторный выбор вопроса заменяет отве
   let answers = selectAnswer({}, 'q1', 2);
   answers = selectAnswer(answers, 'q1', 1);
 
-  const payload = buildPayload({ ...answers, q2: 0 }, questions, new Date());
+  const payload = buildPayload({ ...answers, q2: [0], q3: 'лента' }, questions, new Date());
   assert.equal(payload.answers.filter((item) => item.id === 'q1').length, 1);
   assert.equal(payload.answers[0].answer, 'Гибрид');
 });

@@ -6,6 +6,7 @@ import {
   pendingState,
   postAnswers,
   renderQuestion,
+  renderTextQuestion,
   submitUrl,
 } from './survey.js';
 
@@ -20,10 +21,36 @@ const submitButton = document.querySelector('.submit-button');
 const submitError = document.querySelector('.submit-error');
 const thankYouScreen = document.querySelector('.thank-you-screen');
 
+function isAnswered(question) {
+  const value = answers[question.id];
+  if (question.type === 'text') {
+    return typeof value === 'string' && value.trim() !== '';
+  }
+  if (question.type === 'checkbox') {
+    return Array.isArray(value) && value.length > 0;
+  }
+  return typeof value === 'number';
+}
+
+function isRequired(question) {
+  return question.required !== false;
+}
+
 function answeredCount() {
-  return [...questionList.querySelectorAll('.survey-question')].filter(
-    (node) => node.dataset.answered === 'true',
-  ).length;
+  return questions.filter(isAnswered).length;
+}
+
+function requiredLeft() {
+  return questions.filter((question) => isRequired(question) && !isAnswered(question)).length;
+}
+
+function paintQuestionState(questionId) {
+  const question = questions.find((item) => item.id === questionId);
+  const questionNode = questionList.querySelector(`.survey-question[data-question-id="${questionId}"]`);
+  if (!question || !questionNode) {
+    return;
+  }
+  questionNode.dataset.answered = String(isAnswered(question));
 }
 
 function paintProgress() {
@@ -33,26 +60,52 @@ function paintProgress() {
   progressBar.setAttribute('aria-valuemax', String(total));
   progressValue.textContent = `${answered} из ${total}`;
   if (!state.submitting) {
-    applyButtonState(submitButton, idleState(answered < total));
+    applyButtonState(submitButton, idleState(requiredLeft() > 0));
   }
 }
 
-function paintAnswer(node) {
+function paintChoice(node) {
   const questionId = node.dataset.questionId;
+  const question = questions.find((item) => item.id === questionId);
   const questionNode = questionList.querySelector(`.survey-question[data-question-id="${questionId}"]`);
 
-  questionNode.querySelectorAll('.answer-option').forEach((option) => {
-    option.dataset.selected = 'false';
-    option.setAttribute('aria-pressed', 'false');
-  });
+  if (question.type !== 'checkbox') {
+    questionNode.querySelectorAll('.answer-option').forEach((option) => {
+      option.dataset.selected = 'false';
+      option.setAttribute('aria-pressed', 'false');
+    });
+  }
 
-  node.dataset.selected = 'true';
-  node.setAttribute('aria-pressed', 'true');
-  questionNode.dataset.answered = 'true';
+  const checked = node.dataset.selected !== 'true';
+  node.dataset.selected = String(checked);
+  node.setAttribute('aria-pressed', String(checked));
+}
+
+function commitChoice(questionId, optionIndex, checked) {
+  const question = questions.find((item) => item.id === questionId);
+  if (question.type === 'checkbox') {
+    const current = Array.isArray(answers[questionId]) ? [...answers[questionId]] : [];
+    const next = checked
+      ? [...new Set([...current, optionIndex])].sort((a, b) => a - b)
+      : current.filter((index) => index !== optionIndex);
+    if (next.length) {
+      answers[questionId] = next;
+    } else {
+      delete answers[questionId];
+    }
+    return;
+  }
+  if (checked) {
+    answers[questionId] = optionIndex;
+  } else {
+    delete answers[questionId];
+  }
 }
 
 function renderQuestions() {
-  questionList.innerHTML = questions.map((question) => renderQuestion(question)).join('');
+  questionList.innerHTML = questions
+    .map((question) => (question.type === 'text' ? renderTextQuestion(question) : renderQuestion(question)))
+    .join('');
   paintProgress();
 }
 
@@ -103,8 +156,25 @@ questionList.addEventListener('click', (event) => {
     return;
   }
   const questionId = option.dataset.questionId;
-  answers[questionId] = Number(option.dataset.optionIndex);
-  paintAnswer(option);
+  paintChoice(option);
+  commitChoice(questionId, Number(option.dataset.optionIndex), option.dataset.selected === 'true');
+  paintQuestionState(questionId);
+  paintProgress();
+});
+
+questionList.addEventListener('input', (event) => {
+  const input = event.target.closest('.answer-input');
+  if (!input || state.submitted) {
+    return;
+  }
+  const questionId = input.closest('.survey-question').dataset.questionId;
+  const value = input.value.trim();
+  if (value) {
+    answers[questionId] = value;
+  } else {
+    delete answers[questionId];
+  }
+  paintQuestionState(questionId);
   paintProgress();
 });
 
