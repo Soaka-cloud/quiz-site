@@ -294,6 +294,94 @@ body::after {
   border-radius: 0;
 }
 
+.answer-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.answer-chip {
+  width: auto;
+  padding: 8px 14px;
+  font-size: 13.5px;
+  border-radius: 999px;
+}
+
+.answer-chip::before {
+  display: none;
+}
+
+.answer-group-name {
+  margin: 12px 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--color-dim);
+}
+
+.date-custom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.date-custom .answer-input {
+  flex: 1 1 180px;
+  min-width: 0;
+  padding: 11px 13px;
+}
+
+.date-add {
+  flex: 0 0 auto;
+  padding: 11px 16px;
+  border: 1px solid var(--color-gold);
+  border-radius: var(--radius-item);
+  background: transparent;
+  color: var(--color-gold);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.date-add:hover {
+  background: var(--color-gold);
+  color: #10131a;
+}
+
+.date-chosen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.date-token {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-gold);
+  border-radius: 999px;
+  background: var(--color-gold-soft);
+  color: var(--color-gold);
+  font-size: 13px;
+}
+
+.date-remove {
+  border: 0;
+  background: none;
+  color: var(--color-gold);
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.date-remove:hover {
+  opacity: 1;
+}
+
 .submit-button {
   width: 100%;
   margin-top: 22px;

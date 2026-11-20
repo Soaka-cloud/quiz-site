@@ -18,6 +18,51 @@ export function renderQuestion(question) {
 </fieldset>`;
 }
 
+export function renderGroupedQuestion(question) {
+  const groups = question.groups
+    .map((group, groupIndex) => {
+      const chips = group.options
+        .map((option) => {
+          const index = findOptionIndex(question, option.value);
+          return `<button type="button" class="answer-option answer-chip" data-question-id="${question.id}" data-option-index="${index}" data-kind="${question.type}" data-selected="false">${option.label}</button>`;
+        })
+        .join('');
+      return `<p class="answer-group-name">${group.name}</p>
+  <div class="answer-chips" data-group-index="${groupIndex}">${chips}</div>`;
+    })
+    .join('');
+
+  const hint = question.hint ? `<p class="question-hint">${question.hint}</p>` : '';
+
+  return `<fieldset class="survey-question" data-question-id="${question.id}" data-answered="false">
+  <legend class="question-text">${question.text}</legend>
+  ${hint}
+  ${groups}
+</fieldset>`;
+}
+
+export function renderDatesQuestion(question) {
+  const presets = (question.presets || [])
+    .map(
+      (preset, index) =>
+        `<button type="button" class="answer-option answer-chip date-chip" data-question-id="${question.id}" data-preset-index="${index}" data-kind="dates" data-selected="false">${preset}</button>`,
+    )
+    .join('');
+
+  const hint = question.hint ? `<p class="question-hint">${question.hint}</p>` : '';
+
+  return `<fieldset class="survey-question" data-question-id="${question.id}" data-answered="false">
+  <legend class="question-text">${question.text}</legend>
+  ${hint}
+  <div class="answer-chips date-presets">${presets}</div>
+  <div class="date-custom">
+    <input type="text" class="answer-input date-input" placeholder="${question.placeholder || ''}" aria-label="Своя дата">
+    <button type="button" class="date-add">Добавить</button>
+  </div>
+  <div class="date-chosen" aria-live="polite"></div>
+</fieldset>`;
+}
+
 export function renderTextQuestion(question) {
   const required = question.required !== false;
 
@@ -25,6 +70,17 @@ export function renderTextQuestion(question) {
   <legend class="question-text">${question.text}</legend>
   <textarea class="answer-input" rows="3" aria-label="${question.text}" placeholder="${question.placeholder || ''}" data-required="${required}"></textarea>
 </fieldset>`;
+}
+
+export function allOptions(question) {
+  if (question.groups) {
+    return question.groups.flatMap((group) => group.options);
+  }
+  return question.options || [];
+}
+
+function findOptionIndex(question, value) {
+  return allOptions(question).findIndex((option) => option.value === value);
 }
 
 export function selectAnswer(answers, questionId, optionIndex) {
@@ -42,11 +98,14 @@ function isEmptyValue(value) {
 }
 
 function answerText(question, value) {
+  const options = allOptions(question);
   if (Array.isArray(value)) {
-    return value.map((index) => question.options[index].value).join(', ');
+    return value
+      .map((item) => (typeof item === 'number' ? options[item].value : String(item)))
+      .join(', ');
   }
   if (typeof value === 'number') {
-    return question.options[value].value;
+    return options[value].value;
   }
   return value;
 }

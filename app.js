@@ -5,6 +5,8 @@ import {
   idleState,
   pendingState,
   postAnswers,
+  renderDatesQuestion,
+  renderGroupedQuestion,
   renderQuestion,
   renderTextQuestion,
   submitUrl,
@@ -21,12 +23,16 @@ const submitButton = document.querySelector('.submit-button');
 const submitError = document.querySelector('.submit-error');
 const thankYouScreen = document.querySelector('.thank-you-screen');
 
+function questionById(id) {
+  return questions.find((item) => item.id === id);
+}
+
 function isAnswered(question) {
   const value = answers[question.id];
   if (question.type === 'text') {
     return typeof value === 'string' && value.trim() !== '';
   }
-  if (question.type === 'checkbox') {
+  if (question.type === 'checkbox' || question.type === 'dates') {
     return Array.isArray(value) && value.length > 0;
   }
   return typeof value === 'number';
@@ -36,53 +42,44 @@ function isRequired(question) {
   return question.required !== false;
 }
 
-function answeredCount() {
-  return questions.filter(isAnswered).length;
-}
-
 function requiredLeft() {
   return questions.filter((question) => isRequired(question) && !isAnswered(question)).length;
 }
 
 function paintQuestionState(questionId) {
-  const question = questions.find((item) => item.id === questionId);
-  const questionNode = questionList.querySelector(`.survey-question[data-question-id="${questionId}"]`);
-  if (!question || !questionNode) {
-    return;
+  const question = questionById(questionId);
+  const node = questionList.querySelector(`.survey-question[data-question-id="${questionId}"]`);
+  if (question && node) {
+    node.dataset.answered = String(isAnswered(question));
   }
-  questionNode.dataset.answered = String(isAnswered(question));
 }
 
 function paintProgress() {
-  const total = questions.length;
-  const answered = answeredCount();
+  const answered = questions.filter(isAnswered).length;
   progressBar.setAttribute('aria-valuenow', String(answered));
-  progressBar.setAttribute('aria-valuemax', String(total));
-  progressValue.textContent = `${answered} из ${total}`;
+  progressBar.setAttribute('aria-valuemax', String(questions.length));
+  progressValue.textContent = `${answered} из ${questions.length}`;
   if (!state.submitting) {
     applyButtonState(submitButton, idleState(requiredLeft() > 0));
   }
 }
 
 function paintChoice(node) {
-  const questionId = node.dataset.questionId;
-  const question = questions.find((item) => item.id === questionId);
-  const questionNode = questionList.querySelector(`.survey-question[data-question-id="${questionId}"]`);
-
+  const question = questionById(node.dataset.questionId);
+  const scope = node.closest('.survey-question');
   if (question.type !== 'checkbox') {
-    questionNode.querySelectorAll('.answer-option').forEach((option) => {
+    scope.querySelectorAll('.answer-option').forEach((option) => {
       option.dataset.selected = 'false';
       option.setAttribute('aria-pressed', 'false');
     });
   }
-
   const checked = node.dataset.selected !== 'true';
   node.dataset.selected = String(checked);
   node.setAttribute('aria-pressed', String(checked));
 }
 
 function commitChoice(questionId, optionIndex, checked) {
-  const question = questions.find((item) => item.id === questionId);
+  const question = questionById(questionId);
   if (question.type === 'checkbox') {
     const current = Array.isArray(answers[questionId]) ? [...answers[questionId]] : [];
     const next = checked
@@ -102,10 +99,57 @@ function commitChoice(questionId, optionIndex, checked) {
   }
 }
 
+function paintDates(scope) {
+  const chosen = scope.querySelector('.date-chosen');
+  const list = Array.isArray(answers.dates) ? answers.dates : [];
+  scope.querySelectorAll('.date-chip').forEach((chip) => {
+    const preset = chip.textContent.trim();
+    const on = list.includes(preset);
+    chip.dataset.selected = String(on);
+    chip.setAttribute('aria-pressed', String(on));
+  });
+  chosen.innerHTML = list
+    .map(
+      (item) =>
+        `<span class="date-token" data-value="${item}">${item}<button type="button" class="date-remove" aria-label="Убрать ${item}">×</button></span>`,
+    )
+    .join('');
+  if (list.length) {
+    answers.dates = list;
+  } else {
+    delete answers.dates;
+  }
+}
+
+function addDate(value) {
+  const text = value.trim();
+  if (!text) {
+    return;
+  }
+  const question = questionById('dates');
+  const presets = question.presets || [];
+  const current = Array.isArray(answers.dates) ? [...answers.dates] : [];
+  if (!current.some((item) => item.toLowerCase() === text.toLowerCase())) {
+    current.push(presets.includes(text) ? text : text);
+    answers.dates = current;
+  }
+  paintQuestionState('dates');
+  paintProgress();
+}
+
 function renderQuestions() {
   questionList.innerHTML = questions
-    .map((question) => (question.type === 'text' ? renderTextQuestion(question) : renderQuestion(question)))
+    .map((question) => {
+      if (question.type === 'dates') return renderDatesQuestion(question);
+      if (question.groups) return renderGroupedQuestion(question);
+      if (question.type === 'text') return renderTextQuestion(question);
+      return renderQuestion(question);
+    })
     .join('');
+  const datesScope = questionList.querySelector('[data-question-id="dates"]');
+  if (datesScope) {
+    paintDates(datesScope);
+  }
   paintProgress();
 }
 
@@ -151,8 +195,51 @@ async function handleSubmit() {
 }
 
 questionList.addEventListener('click', (event) => {
+  if (state.submitted) {
+    return;
+  }
+
+  const addButton = event.target.closest('.date-add');
+  if (addButton) {
+    const scope = addButton.closest('.survey-question');
+    const input = scope.querySelector('.date-input');
+    addDate(input.value);
+    paintDates(scope);
+    input.value = '';
+    return;
+  }
+
+  const removeButton = event.target.closest('.date-remove');
+  if (removeButton) {
+    const value = removeButton.closest('.date-token').dataset.value;
+    answers.dates = (answers.dates || []).filter((item) => item !== value);
+    const scope = removeButton.closest('.survey-question');
+    paintDates(scope);
+    paintQuestionState('dates');
+    paintProgress();
+    return;
+  }
+
+  const chip = event.target.closest('.date-chip');
+  if (chip) {
+    const preset = chip.textContent.trim();
+    const current = Array.isArray(answers.dates) ? [...answers.dates] : [];
+    const next = current.includes(preset)
+      ? current.filter((item) => item !== preset)
+      : [...current, preset];
+    if (next.length) {
+      answers.dates = next;
+    } else {
+      delete answers.dates;
+    }
+    paintDates(chip.closest('.survey-question'));
+    paintQuestionState('dates');
+    paintProgress();
+    return;
+  }
+
   const option = event.target.closest('.answer-option');
-  if (!option || state.submitted) {
+  if (!option) {
     return;
   }
   const questionId = option.dataset.questionId;
@@ -162,9 +249,19 @@ questionList.addEventListener('click', (event) => {
   paintProgress();
 });
 
+questionList.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' && event.target.matches('.date-input')) {
+    event.preventDefault();
+    const scope = event.target.closest('.survey-question');
+    addDate(event.target.value);
+    paintDates(scope);
+    event.target.value = '';
+  }
+});
+
 questionList.addEventListener('input', (event) => {
   const input = event.target.closest('.answer-input');
-  if (!input || state.submitted) {
+  if (!input || state.submitted || input.classList.contains('date-input')) {
     return;
   }
   const questionId = input.closest('.survey-question').dataset.questionId;

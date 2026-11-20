@@ -1,51 +1,59 @@
 export const questions = [
   {
-    id: 'place',
-    type: 'radio',
-    text: 'Место',
-    hint: 'одно из трёх',
-    options: [
-      {
-        label: 'Винный бар',
-        value: 'wine_bar',
-        note: 'свечи, тихий зал, разговоры без спешки',
-        price: '18:00—23:00',
-      },
-      {
-        label: 'Кофейня у парка',
-        value: 'coffee',
-        note: 'светло, можно задержаться хоть на три часа',
-        price: '10:00—21:00',
-      },
-      {
-        label: 'Набережная',
-        value: 'embankment',
-        note: 'без брони, шаг в шаг, ветер в лицо',
-        price: 'закат',
-      },
-    ],
+    id: 'dates',
+    type: 'dates',
+    text: 'Даты',
+    hint: 'можно несколько, свои тоже',
+    presets: ['Ближайшая пятница', 'Суббота', 'Воскресенье', 'На следующей неделе'],
+    placeholder: 'Своя дата — например, «7 декабря»',
   },
   {
-    id: 'time',
-    type: 'radio',
-    text: 'Время',
-    hint: 'выбери одно',
-    options: [
-      { label: 'Будний вечер', value: 'weekday_evening' },
-      { label: 'Выходные днём', value: 'weekend_day' },
-      { label: 'Выходные вечером', value: 'weekend_evening' },
-    ],
-  },
-  {
-    id: 'mood',
+    id: 'cuisine',
     type: 'checkbox',
-    text: 'Настроение',
+    text: 'Кухня',
     hint: 'можно несколько',
-    options: [
-      { label: 'Тихо', value: 'quiet' },
-      { label: 'Живо', value: 'live' },
-      { label: 'Поесть хорошо', value: 'food' },
-      { label: 'Погулять', value: 'walk' },
+    groups: [
+      {
+        name: 'Кухни',
+        options: [
+          { label: 'Азия', value: 'asia' },
+          { label: 'Паназия', value: 'pan_asia' },
+          { label: 'Европа', value: 'europe' },
+          { label: 'Италия', value: 'italy' },
+          { label: 'Кавказ', value: 'caucasus' },
+        ],
+      },
+      {
+        name: 'Конкретнее',
+        options: [
+          { label: 'Пицца', value: 'pizza' },
+          { label: 'Роллы', value: 'rolls' },
+          { label: 'Кофе и десерт', value: 'coffee_dessert' },
+          { label: 'Стейк', value: 'steak' },
+          { label: 'Паста', value: 'pasta' },
+        ],
+      },
     ],
+  },
+  {
+    id: 'format',
+    type: 'radio',
+    text: 'Формат',
+    hint: 'выбери один',
+    options: [
+      { label: 'Кафе', value: 'cafe', note: 'уютно и без долгих сборов' },
+      { label: 'Ресторан', value: 'restaurant', note: 'повод одеться' },
+      { label: 'Кофейня', value: 'coffee_shop', note: 'днём, с кофе и разговорами' },
+      { label: 'Приготовить дома вдвоём', value: 'cook_together', note: 'свой рецепт, своя атмосфера' },
+    ],
+  },
+  {
+    id: 'custom',
+    type: 'text',
+    text: 'Свои варианты',
+    hint: 'необязательно',
+    options: [],
+    required: false,
+    placeholder: 'Есть своя идея — впиши её здесь. Например: «суши-бар у дома» или «пятница, 19:00, Гринвич».',
   },
 ];
