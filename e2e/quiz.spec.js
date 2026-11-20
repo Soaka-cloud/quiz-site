@@ -6,10 +6,10 @@ const WEB_REQUEST = `${FAKE_ENDPOINT}?client=web`;
 const CONFIG_STUB = `window.SURVEY_CONFIG = { endpoint: '${FAKE_ENDPOINT}' };`;
 
 test.beforeEach(async ({ page }) => {
-  await page.route('**/config.js', (route) =>
+  await page.route(/\/config\.js(\?.*)?$/, (route) =>
     route.fulfill({ status: 200, contentType: 'application/javascript', body: CONFIG_STUB }),
   );
-  await page.route(WEB_REQUEST, (route) =>
+  await page.route(`${FAKE_ENDPOINT}?client=web`, (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }),
   );
   await page.goto('/index.html');
@@ -123,7 +123,7 @@ test('E4: в приёмник уходят коды вариантов, а не 
 });
 
 test('E5: при ошибке сервера приглашение не «принято», показано сообщение', async ({ page }) => {
-  await page.unroute(WEB_REQUEST);
+  await page.unroute(`${FAKE_ENDPOINT}?client=web`);
   await page.route('**/macros/s/**', (route) =>
     route.fulfill({ status: 500, contentType: 'application/json', body: '{"ok":false}' }),
   );
@@ -139,7 +139,7 @@ test('E5: при ошибке сервера приглашение не «пр�
 test('E8: кнопка блокируется на время отправки и оживает после ошибки', async ({ page }) => {
   const submit = page.locator('.submit-button');
 
-  await page.unroute(WEB_REQUEST);
+  await page.unroute(`${FAKE_ENDPOINT}?client=web`);
   await page.route('**/macros/s/**', async (route) => {
     await new Promise((resolve) => { setTimeout(resolve, 1500); });
     await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
