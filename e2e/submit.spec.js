@@ -74,6 +74,37 @@ test('E6: кнопка отправки заблокирована, пока н�
   await expect(submit).toBeEnabled();
 });
 
+test('E8: кнопка блокируется на время отправки и разблокируется при сетевой ошибке', async ({ page }) => {
+  const submit = page.locator('.submit-button');
+
+  await page.route('**/macros/s/**', async (route) => {
+    await new Promise((resolve) => { setTimeout(resolve, 2000); });
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
+  });
+
+  await answerEverything(page);
+  await expect(submit).toBeEnabled();
+  await submit.click();
+
+  await expect
+    .poll(() => submit.isDisabled(), { message: 'во время ожидания ответа кнопка должна быть disabled' })
+    .toBe(true);
+  await expect(submit).toHaveAttribute('aria-busy', 'true');
+
+  await expect(page.locator('.thank-you-screen')).toBeVisible();
+  await expect(submit).toBeHidden();
+
+  await page.unroute('**/macros/s/**');
+  await page.route('**/macros/s/**', (route) => route.abort('connectionrefused'));
+  await page.reload();
+  await answerEverything(page);
+
+  await page.locator('.submit-button').click();
+  await expect(page.locator('.submit-error')).toBeVisible();
+  await expect(page.locator('.submit-button')).toBeEnabled();
+  await expect(page.locator('.submit-button')).not.toHaveAttribute('aria-busy', 'true');
+});
+
 test('E7: логика не создаёт инлайн-стилей и не правит CSS', async ({ page }) => {
   await page.route('**/macros/s/**', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }),

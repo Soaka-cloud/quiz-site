@@ -1,8 +1,16 @@
 import { questions } from './questions.js';
-import { buildPayload, postAnswers, renderQuestion, submitUrl } from './survey.js';
+import {
+  applyButtonState,
+  buildPayload,
+  idleState,
+  pendingState,
+  postAnswers,
+  renderQuestion,
+  submitUrl,
+} from './survey.js';
 
 const answers = {};
-const state = { submitted: false };
+const state = { submitted: false, submitting: false };
 
 const root = document.querySelector('.survey');
 const questionList = document.querySelector('.question-list');
@@ -24,7 +32,9 @@ function paintProgress() {
   progressBar.setAttribute('aria-valuenow', String(answered));
   progressBar.setAttribute('aria-valuemax', String(total));
   progressValue.textContent = `${answered} из ${total}`;
-  submitButton.disabled = answered < total;
+  if (!state.submitting) {
+    applyButtonState(submitButton, idleState(answered < total));
+  }
 }
 
 function paintAnswer(node) {
@@ -57,17 +67,19 @@ function showThankYou() {
 function showSubmitError(error) {
   submitError.textContent = error.message;
   submitError.hidden = false;
-  submitButton.disabled = false;
 }
 
 async function handleSubmit() {
   submitError.hidden = true;
-  submitButton.disabled = true;
+  state.submitting = true;
+  applyButtonState(submitButton, pendingState());
 
   let endpoint;
   try {
     endpoint = submitUrl(window.SURVEY_CONFIG);
   } catch (error) {
+    state.submitting = false;
+    applyButtonState(submitButton, idleState(false));
     showSubmitError(error);
     return;
   }
@@ -75,10 +87,13 @@ async function handleSubmit() {
   try {
     await postAnswers(endpoint, buildPayload(answers, questions));
   } catch (error) {
+    state.submitting = false;
+    applyButtonState(submitButton, idleState(false));
     showSubmitError(error);
     return;
   }
 
+  state.submitting = false;
   showThankYou();
 }
 

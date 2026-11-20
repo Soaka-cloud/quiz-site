@@ -62,3 +62,16 @@ export async function postAnswers(endpoint, payload) {
   }
   return data;
 }
+
+export function pendingState() {
+  return { disabled: true, busy: 'true' };
+}
+
+export function idleState(disabled) {
+  return { disabled: Boolean(disabled), busy: 'false' };
+}
+
+export function applyButtonState(button, state) {
+  button.disabled = state.disabled;
+  button.setAttribute('aria-busy', state.busy);
+}
