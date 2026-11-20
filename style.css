@@ -1,0 +1,41 @@
+:root {
+  --color-text: #1a1a1a;
+  --color-bg: #ffffff;
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: system-ui, sans-serif;
+  line-height: 1.4;
+}
+
+.survey {
+  max-width: 640px;
+}
+
+.survey-question {
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+}
+
+.answer-option {
+  display: block;
+  width: 100%;
+  margin: 4px 0;
+  padding: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.submit-button {
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.thank-you-screen {
+  padding: 16px 0;
+}

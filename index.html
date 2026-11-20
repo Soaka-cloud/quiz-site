@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Опрос</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="survey" data-state="questions">
+    <h1 class="survey-title">Опрос</h1>
+
+    <div class="progress">
+      <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuenow="0" aria-valuemax="3">
+        <span class="progress-bar__title">Заполнено</span>
+        <span class="progress-bar__value">0</span>
+      </div>
+    </div>
+
+    <form class="question-list" novalidate></form>
+
+    <button type="button" class="submit-button" disabled>Отправить</button>
+
+    <section class="thank-you-screen" hidden>
+      <h2 class="thank-you-screen__title">Спасибо!</h2>
+      <p class="thank-you-screen__text">Ваши ответы отправлены.</p>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
