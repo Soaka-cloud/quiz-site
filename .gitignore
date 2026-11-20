@@ -4,3 +4,4 @@ test-results/
 playwright-report/
 .env
 scripts/.smoke-post.done
+scripts/.live-smoke.done
