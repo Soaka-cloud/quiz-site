@@ -29,10 +29,21 @@ npx c8 node --test      # то же с покрытием
 ## Заменять при редизайне
 
 - `style.css` — целиком;
-- разметку внутри крючков в `index.html`: `survey-question`, `answer-option`, `submit-button`, `progress-bar`, `thank-you-screen`;
-- тексты вопросов в `questions.js` (структура `{id, text, options[]}` — контракт).
+- разметку внутри крючков в `index.html`: `survey-question`, `answer-option`, `answer-input`, `submit-button`, `progress-bar`, `thank-you-screen`;
+- тексты и варианты в `questions.js` — это данные, структура описана ниже.
 
 Не трогать: `app.js`, `survey.js`, `apps-script/Code.gs`.
+
+### Формат данных вопроса
+
+```js
+{ id: 'q1', type: 'radio', text: 'Вопрос', options: [{ label: 'Показывается', value: 'Уходит в таблицу' }] }
+{ id: 'q2', type: 'checkbox', text: 'Вопрос', options: [{ label, value }, ...] }   // несколько вариантов, склеиваются через запятую
+{ id: 'q3', type: 'text', text: 'Вопрос', options: [], required: true, placeholder: '...' }
+```
+
+`required` по умолчанию `true`: обязательный вопрос держит кнопку «Отправить» заблокированной, пока не заполнен. Служебных полей вроде `recommended` в данных нет — всё, что лежит в `label`, посетитель увидит.
+
 
 ## Структура
 
