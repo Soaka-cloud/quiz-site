@@ -1,7 +1,7 @@
 import { questions } from './questions.js';
-import { renderQuestion } from './survey.js';
+import { buildPayload, postAnswers, renderQuestion, submitUrl } from './survey.js';
 
-const answers = new Map();
+const answers = {};
 const state = { submitted: false };
 
 const root = document.querySelector('.survey');
@@ -9,6 +9,7 @@ const questionList = document.querySelector('.question-list');
 const progressBar = document.querySelector('.progress-bar');
 const progressValue = document.querySelector('.progress-bar__value');
 const submitButton = document.querySelector('.submit-button');
+const submitError = document.querySelector('.submit-error');
 const thankYouScreen = document.querySelector('.thank-you-screen');
 
 function answeredCount() {
@@ -26,7 +27,7 @@ function paintProgress() {
   submitButton.disabled = answered < total;
 }
 
-function selectAnswer(node) {
+function paintAnswer(node) {
   const questionId = node.dataset.questionId;
   const questionNode = questionList.querySelector(`.survey-question[data-question-id="${questionId}"]`);
 
@@ -38,9 +39,6 @@ function selectAnswer(node) {
   node.dataset.selected = 'true';
   node.setAttribute('aria-pressed', 'true');
   questionNode.dataset.answered = 'true';
-  answers.set(questionId, Number(node.dataset.optionIndex));
-
-  paintProgress();
 }
 
 function renderQuestions() {
@@ -56,15 +54,47 @@ function showThankYou() {
   submitButton.hidden = true;
 }
 
+function showSubmitError(error) {
+  submitError.textContent = error.message;
+  submitError.hidden = false;
+  submitButton.disabled = false;
+}
+
+async function handleSubmit() {
+  submitError.hidden = true;
+  submitButton.disabled = true;
+
+  let endpoint;
+  try {
+    endpoint = submitUrl(window.SURVEY_CONFIG);
+  } catch (error) {
+    showSubmitError(error);
+    return;
+  }
+
+  try {
+    await postAnswers(endpoint, buildPayload(answers, questions));
+  } catch (error) {
+    showSubmitError(error);
+    return;
+  }
+
+  showThankYou();
+}
+
 questionList.addEventListener('click', (event) => {
   const option = event.target.closest('.answer-option');
-  if (option && !state.submitted) {
-    selectAnswer(option);
+  if (!option || state.submitted) {
+    return;
   }
+  const questionId = option.dataset.questionId;
+  answers[questionId] = Number(option.dataset.optionIndex);
+  paintAnswer(option);
+  paintProgress();
 });
 
 submitButton.addEventListener('click', () => {
-  showThankYou();
+  handleSubmit();
 });
 
 renderQuestions();

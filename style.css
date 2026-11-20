@@ -36,6 +36,10 @@ body {
   cursor: pointer;
 }
 
+.submit-error {
+  color: #b00020;
+}
+
 .thank-you-screen {
   padding: 16px 0;
 }

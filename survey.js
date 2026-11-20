@@ -11,3 +11,54 @@ export function renderQuestion(question) {
   <div class="answer-list">${options}</div>
 </fieldset>`;
 }
+
+export function selectAnswer(answers, questionId, optionIndex) {
+  return { ...answers, [questionId]: optionIndex };
+}
+
+export function buildPayload(answers, questions, now = new Date()) {
+  return {
+    timestamp: now.toISOString(),
+    survey: 'default',
+    answers: questions
+      .filter((question) => answers[question.id] !== undefined)
+      .map((question) => ({
+        id: question.id,
+        question: question.text,
+        answer: question.options[answers[question.id]],
+      })),
+  };
+}
+
+export function submitUrl(config) {
+  const endpoint = config && config.endpoint;
+  if (!endpoint) {
+    throw new Error('endpoint не задан в конфиге (config.js → SURVEY_ENDPOINT)');
+  }
+  return endpoint;
+}
+
+export async function postAnswers(endpoint, payload) {
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload),
+    redirect: 'follow',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Сервер ответил ${response.status}`);
+  }
+
+  const text = await response.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = { ok: false, error: 'ответ сервера не JSON' };
+  }
+  if (data.ok === false) {
+    throw new Error(data.error || 'сервер сообщил об ошибке');
+  }
+  return data;
+}
