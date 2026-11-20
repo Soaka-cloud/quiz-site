@@ -8,8 +8,8 @@ const grouped = {
   type: 'checkbox',
   text: 'Кухня',
   groups: [
-    { name: 'Кухни', options: [{ label: 'Азия', value: 'asia' }, { label: 'Европа', value: 'europe' }] },
-    { name: 'Конкретнее', options: [{ label: 'Пицца', value: 'pizza' }] },
+    { name: 'Кухни', options: [{ label: 'Азия', value: 'азия' }, { label: 'Европа', value: 'европа' }] },
+    { name: 'Конкретнее', options: [{ label: 'Пицца', value: 'пицца' }] },
   ],
 };
 
@@ -24,7 +24,7 @@ const dates = {
 test('U16: allOptions склеивает группы в один список с общими индексами', () => {
   assert.deepEqual(
     allOptions(grouped).map((option) => option.value),
-    ['asia', 'europe', 'pizza'],
+    ['азия', 'европа', 'пицца'],
   );
 });
 
@@ -37,7 +37,7 @@ test('U17: индексы вариантов в группах соответс�
 
 test('U18: мультивыбор из групп превращается в коды через запятую', () => {
   const payload = buildPayload({ cuisine: [0, 2] }, [grouped], new Date());
-  assert.equal(payload.answers[0].answer, 'asia, pizza');
+  assert.equal(payload.answers[0].answer, 'азия, пицца');
 });
 
 test('U19: своя дата попадает в payload как введена, пресеты — как метки', () => {

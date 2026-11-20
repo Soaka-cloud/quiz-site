@@ -1,15 +1,18 @@
 /**
- * Приёмник ответов опроса.
+ * Приёмник ответов опроса «Приглашение на одну встречу».
  *
  * ВАЖНО: SHEET_ID и SHEET_NAME лежат в Script Properties
  * (Настройки проекта → Свойства скрипта), а НЕ в этом файле.
  *
- * Диагностика кодировки: клиент, который не отдаёт charset, отправляет тело
- * в кодировке своего процесса (на Windows это может быть cp1251). Если тело
- * пришло в UTF-8 — ставим маркер 'utf8', иначе 'preserved'. Маркер пишется
- * в колонку «Кодировка», чтобы расхождение было видно сразу, а не искали
- * глазами по мохибэйку.
+ * Как устроена таблица:
+ *  - Три служебные колонки: «Когда пришло», «С кодировкой всё ок» (utf8 / preserved), «Клиент».
+ *  - Дальше блоки по вопросам: «ДАТЫ», «КУХНЯ», «ФОРМАТ», «СВОИ ВАРИАНТЫ».
+ *    У каждого блока своя шапка (строка 1) и подпись над каждой колонкой (строка 2),
+ *    чтобы было видно, что где лежит, и можно было удобно фильтровать.
+ *  - Ответы приходят из страницы уже по-русски («азия», «ресторан») — скрипт их пишет как есть.
  */
+
+var BASIC_HEADER = ['Когда пришло', 'С кодировкой всё ок', 'Клиент'];
 
 function doPost(e) {
   try {
@@ -31,7 +34,7 @@ function doPost(e) {
     }
 
     var sheet = getOrCreateSheet(sheetId, sheetName);
-    ensureHeader(sheet, payload.answers);
+    ensureHeader(sheet);
     appendAnswers(sheet, payload, client);
 
     return jsonResponse({ ok: true, client: client, encoding: payload.__encoding || 'nfkc-safe' });
@@ -41,7 +44,6 @@ function doPost(e) {
   }
 }
 
-/** ASCII-only маркер клиента приходит параметром в query string. */
 function parseBody(contents, client) {
   if (client === 'unknown') {
     return JSON.parse(contents);
@@ -73,24 +75,62 @@ function getOrCreateSheet(sheetId, sheetName) {
   return spreadsheet.getSheetByName(sheetName) || spreadsheet.insertSheet(sheetName);
 }
 
-function ensureHeader(sheet, answers) {
+/** Две строки шапки: блоки над колонками + подписи самих колонок. */
+function ensureHeader(sheet) {
   if (sheet.getLastRow() > 0) {
     return;
   }
-  var header = ['Timestamp', 'Survey', 'encoding', 'client'].concat(answers.map(function (item) {
-    return item.question;
-  }));
+
+  var header = BASIC_HEADER.slice();
+  var subheader = ['Время (UTC)', 'utf8 / preserved', 'web / smoke'];
+
+  header.push('ДАТЫ', 'ДАТЫ', '', '', 'КУХНЯ', 'ФОРМАТ', 'СВОИ ВАРИАНТЫ');
+  subheader.push('Дата 1', 'Дата 2', 'Дата 3', 'Дата 4', 'Кухни', 'Формат', 'Комментарий');
+
   sheet.appendRow(header);
-  sheet.setFrozenRows(1);
+  sheet.appendRow(subheader);
+  sheet.getRange(1, 1, 1, header.length).setFontWeight('bold');
+  sheet.getRange(2, 1, 1, subheader.length).setFontStyle('italic');
+  sheet.setFrozenRows(2);
 }
 
 function appendAnswers(sheet, payload, client) {
-  var row = [payload.timestamp || new Date().toISOString(), payload.survey || 'default'];
-  row.push(payload.__encoding || 'nfkc-safe');
-  row.push(client);
+  var dates = [];
+  var format = '';
+  var cuisine = '';
+  var comment = '';
+
   payload.answers.forEach(function (item) {
-    row.push(item.answer);
+    if (item.id === 'dates') {
+      item.answer.split(',').forEach(function (part) {
+        var value = part.trim();
+        if (value) {
+          dates.push(value);
+        }
+      });
+    } else if (item.id === 'cuisine') {
+      cuisine = item.answer;
+    } else if (item.id === 'format') {
+      format = item.answer;
+    } else if (item.id === 'custom') {
+      comment = item.answer;
+    }
   });
+
+  var row = [
+    payload.timestamp || new Date().toISOString(),
+    payload.__encoding || 'nfkc-safe',
+    client,
+  ];
+
+  for (var i = 0; i < 4; i += 1) {
+    row.push(dates[i] || '');
+  }
+
+  row.push(cuisine);
+  row.push(format);
+  row.push(comment);
+
   sheet.appendRow(row);
 }
 

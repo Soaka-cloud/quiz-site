@@ -42,8 +42,8 @@ test('E1: приглашение открывается, все четыре р�
 test('E1b: служебные коды не видны посетителю', async ({ page }) => {
   const text = await page.locator('.question-list').innerText();
   expect(text).not.toContain('[object Object]');
-  expect(text).not.toContain('pan_asia');
-  expect(text).not.toContain('cook_together');
+  expect(text).not.toContain('wine_bar');
+  expect(text).not.toContain('undefined');
 });
 
 test('E2: готовые даты выбираются и снимаются', async ({ page }) => {
@@ -143,8 +143,8 @@ test('E4: в приёмник уходят коды, своя дата и сво
   expect(payload.answers.map((item) => item.id)).toEqual(['dates', 'cuisine', 'format', 'custom']);
   expect(payload.answers[0].answer).toContain('Суббота');
   expect(payload.answers[0].answer).toContain('5 декабря');
-  expect(payload.answers[1].answer).toBe('asia');
-  expect(payload.answers[2].answer).toBe('restaurant');
+  expect(payload.answers[1].answer).toBe('азия');
+  expect(payload.answers[2].answer).toBe('ресторан');
   expect(payload.answers[3].answer).toBe('Суши-бар у дома');
 });
 
