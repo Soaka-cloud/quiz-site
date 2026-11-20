@@ -9,9 +9,9 @@ const questions = [
     type: 'radio',
     text: 'Формат работы?',
     options: [
-      { label: 'Удалённо', value: 'Удалённо' },
-      { label: 'Гибрид', value: 'Гибрид' },
-      { label: 'Офис', value: 'Офис' },
+      { label: 'Удалённо', value: 'remote' },
+      { label: 'Гибрид', value: 'hybrid' },
+      { label: 'Офис', value: 'office' },
     ],
   },
   {
@@ -19,8 +19,8 @@ const questions = [
     type: 'checkbox',
     text: 'Что важно?',
     options: [
-      { label: 'Наставник', value: 'Наставник' },
-      { label: 'Обратная связь', value: 'Обратная связь' },
+      { label: 'Наставник', value: 'mentor' },
+      { label: 'Обратная связь', value: 'feedback' },
     ],
   },
   {
@@ -40,8 +40,8 @@ test('U1: buildPayload отдаёт ответы текстом, в порядк
   );
 
   assert.deepEqual(payload.answers, [
-    { id: 'q1', question: 'Формат работы?', answer: 'Удалённо' },
-    { id: 'q2', question: 'Что важно?', answer: 'Обратная связь' },
+    { id: 'q1', question: 'Формат работы?', answer: 'remote' },
+    { id: 'q2', question: 'Что важно?', answer: 'feedback' },
     { id: 'q3', question: 'Откуда узнал(а)?', answer: 'Группа' },
   ]);
 });
@@ -49,8 +49,46 @@ test('U1: buildPayload отдаёт ответы текстом, в порядк
 test('U9: мультивыбор склеивается текстом, текстовый ответ сохраняется как введён', () => {
   const payload = buildPayload({ q1: 2, q2: [0, 1], q3: '  знакомый  ' }, questions, new Date());
 
-  assert.equal(payload.answers[1].answer, 'Наставник, Обратная связь');
+  assert.equal(payload.answers[1].answer, 'mentor, feedback');
   assert.equal(payload.answers[2].answer, '  знакомый  ');
+});
+
+test('U11: answer берётся из value, а не из label (radio, checkbox, text)', () => {
+  const withValues = [
+    {
+      id: 'r1',
+      type: 'radio',
+      text: 'Формат?',
+      options: [
+        { label: 'Удалённо', value: 'remote' },
+        { label: 'Гибрид', value: 'hybrid' },
+      ],
+    },
+    {
+      id: 'c1',
+      type: 'checkbox',
+      text: 'Что важно?',
+      options: [
+        { label: 'Реальные задачи в проекте', value: 'real_tasks' },
+        { label: 'Наставник рядом', value: 'mentor' },
+      ],
+    },
+    {
+      id: 't1',
+      type: 'text',
+      text: 'Откуда узнал(а)?',
+      options: [],
+    },
+  ];
+
+  const payload = buildPayload({ r1: 1, c1: [0, 1], t1: 'Группа' }, withValues, new Date());
+
+  assert.deepEqual(
+    payload.answers.map((item) => item.answer),
+    ['hybrid', 'real_tasks, mentor', 'Группа'],
+  );
+  assert.equal(payload.answers[0].answer.includes('Гибрид'), false, 'в таблицу ушла метка');
+  assert.equal(payload.answers[1].answer.includes('Реальные задачи'), false, 'в таблицу ушли метки');
 });
 
 test('U10: пустые ответы не попадают в payload', () => {
@@ -72,7 +110,7 @@ test('U3: повторный выбор вопроса заменяет отве
 
   const payload = buildPayload({ ...answers, q2: [0], q3: 'лента' }, questions, new Date());
   assert.equal(payload.answers.filter((item) => item.id === 'q1').length, 1);
-  assert.equal(payload.answers[0].answer, 'Гибрид');
+  assert.equal(payload.answers[0].answer, 'hybrid');
 });
 
 test('U5: submitUrl берёт адрес из конфига, иначе бросает ошибку', () => {

@@ -4,10 +4,10 @@ export const questions = [
     type: 'radio',
     text: 'В каком формате ты ищешь стажировку?',
     options: [
-      { label: 'Удалённо', value: 'Удалённо' },
-      { label: 'В офисе', value: 'В офисе' },
-      { label: 'Гибрид', value: 'Гибрид' },
-      { label: 'Пока не решил(а)', value: 'Пока не решил(а)' },
+      { label: 'Удалённо', value: 'remote' },
+      { label: 'В офисе', value: 'office' },
+      { label: 'Гибрид', value: 'hybrid' },
+      { label: 'Пока не решил(а)', value: 'undecided' },
     ],
   },
   {
@@ -15,10 +15,10 @@ export const questions = [
     type: 'checkbox',
     text: 'Что тебе важно в стажировке? Можно выбрать несколько вариантов.',
     options: [
-      { label: 'Реальные задачи в проекте', value: 'Реальные задачи в проекте' },
-      { label: 'Наставник рядом', value: 'Наставник рядом' },
-      { label: 'Обратная связь по работе', value: 'Обратная связь по работе' },
-      { label: 'Возможность остаться в команде', value: 'Возможность остаться в команде' },
+      { label: 'Реальные задачи в проекте', value: 'real_tasks' },
+      { label: 'Наставник рядом', value: 'mentor' },
+      { label: 'Обратная связь по работе', value: 'feedback' },
+      { label: 'Возможность остаться в команде', value: 'offer' },
     ],
   },
   {
@@ -26,9 +26,9 @@ export const questions = [
     type: 'radio',
     text: 'Сколько времени ты готов(а) уделять стажировке в неделю?',
     options: [
-      { label: 'До 10 часов', value: 'До 10 часов' },
-      { label: '10–20 часов', value: '10–20 часов' },
-      { label: '20–40 часов', value: '20–40 часов' },
+      { label: 'До 10 часов', value: 'lt10' },
+      { label: '10–20 часов', value: '10-20' },
+      { label: '20–40 часов', value: '20-40' },
     ],
   },
   {

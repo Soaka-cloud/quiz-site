@@ -44,8 +44,8 @@ test('E4: при отправке уходит JSON с timestamp и ответа
   expect(payload.answers).toHaveLength(QUESTION_COUNT);
   expect(payload.answers.map((item) => item.id)).toEqual(['q1', 'q2', 'q3', 'q4', 'q5']);
 
-  expect(payload.answers[0].answer).toBe('В офисе');
-  expect(payload.answers[1].answer).toBe('Реальные задачи в проекте, Обратная связь по работе');
+  expect(payload.answers[0].answer).toBe('office');
+  expect(payload.answers[1].answer).toBe('real_tasks, feedback');
   expect(payload.answers[3].answer).toBe('Помогал(а) тестировать чужой проект');
   expect(payload.answers[4].answer).toBe('Группа');
 
