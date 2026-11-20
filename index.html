@@ -3,29 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Опрос</title>
+  <meta name="theme-color" content="#0a0d14">
+  <title>Приглашение на одну встречу</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Alegreya+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main class="survey" data-state="questions">
-    <h1 class="survey-title">Опрос</h1>
+    <div class="card">
+      <header class="survey-header">
+        <div class="survey-seal" aria-hidden="true">М</div>
+        <h1 class="survey-title">Приглашение<br><em>на одну встречу</em></h1>
+        <p class="survey-lead">Составь меню вечера: место, время, настроение. Бронировать буду я — тебе останется только прийти.</p>
+      </header>
 
-    <div class="progress">
-      <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuenow="0" aria-valuemax="3">
-        <span class="progress-bar__title">Заполнено</span>
-        <span class="progress-bar__value">0</span>
+      <div class="progress" hidden>
+        <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuenow="0" aria-valuemax="1">
+          <span class="progress-bar__title">Заполнено</span>
+          <span class="progress-bar__value">0</span>
+        </div>
       </div>
+
+      <form class="question-list" novalidate></form>
+
+      <button type="button" class="submit-button" disabled>Подписать приглашение</button>
+      <p class="submit-error" role="alert" hidden></p>
+      <p class="survey-note">Выбор уходит мне — пришлю адрес и время</p>
+
+      <section class="thank-you-screen" hidden>
+        <h2 class="thank-you-screen__title">Приглашение <em>принято</em></h2>
+        <p class="thank-you-screen__text">Ответ у меня. Напишу адрес, время и одну деталь, о которой приятно думать заранее.</p>
+      </section>
     </div>
-
-    <form class="question-list" novalidate></form>
-
-    <button type="button" class="submit-button" disabled>Отправить</button>
-    <p class="submit-error" role="alert" hidden></p>
-
-    <section class="thank-you-screen" hidden>
-      <h2 class="thank-you-screen__title">Спасибо!</h2>
-      <p class="thank-you-screen__text">Ваши ответы отправлены.</p>
-    </section>
   </main>
 
   <script src="config.js"></script>

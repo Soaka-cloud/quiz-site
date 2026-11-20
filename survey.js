@@ -1,13 +1,19 @@
 export function renderQuestion(question) {
   const options = (question.options || [])
-    .map(
-      (option, index) =>
-        `<button type="button" class="answer-option" data-question-id="${question.id}" data-option-index="${index}" data-selected="false">${option.label}</button>`,
-    )
+    .map((option, index) => {
+      const label = option.note
+        ? `<span class="answer-label"><b>${option.label}</b><span>${option.note}</span></span>`
+        : `<span class="answer-label"><b>${option.label}</b></span>`;
+      const price = option.price ? `<span class="answer-price">${option.price}</span>` : '';
+      return `<button type="button" class="answer-option" data-question-id="${question.id}" data-option-index="${index}" data-kind="${question.type}" data-selected="false">${label}${price}</button>`;
+    })
     .join('');
+
+  const hint = question.hint ? `<p class="question-hint">${question.hint}</p>` : '';
 
   return `<fieldset class="survey-question" data-question-id="${question.id}" data-answered="false">
   <legend class="question-text">${question.text}</legend>
+  ${hint}
   <div class="answer-list">${options}</div>
 </fieldset>`;
 }
@@ -48,7 +54,7 @@ function answerText(question, value) {
 export function buildPayload(answers, questions, now = new Date()) {
   return {
     timestamp: now.toISOString(),
-    survey: 'default',
+    survey: 'invitation',
     answers: questions
       .map((question) => ({ question, value: answers[question.id] }))
       .filter(({ value }) => !isEmptyValue(value))
