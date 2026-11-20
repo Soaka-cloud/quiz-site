@@ -58,4 +58,5 @@ apps-script/          Code.gs (приёмник) + INSTRUCTIONS.md (деплой
 e2e/                  Playwright-спеки
 test/                 node --test: юнит + стражи
 .hermes/plans/        план проекта и дополнения
+docs/                 статьи (encoding-four-faces.md), подхватываются Pages
 ```
